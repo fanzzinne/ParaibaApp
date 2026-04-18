@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delicias da Tia Néa</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#b91c1c">
+    <link rel="apple-touch-icon" href="app/src/main/res/drawable/logo.png">
+    <link rel="icon" type="image/x-icon" href="app/src/main/res/drawable/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+        body { font-family: 'Inter', sans-serif; }
+
+        .cart-drawer { transform: translateX(100%); transition: transform 0.3s ease-in-out; }
+        .cart-drawer.open { transform: translateX(0); }
+        .modal-overlay { display: none; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+        .modal-overlay.open { display: block; }
+
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #f1f5f9;
+        }
+        .product-card:active { transform: scale(0.98); }
+
+        .category-chip {
+            padding: 8px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.2s;
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid transparent;
+        }
+        .category-chip.active {
+            background: #b91c1c;
+            color: white;
+            box-shadow: 0 4px 10px rgba(185, 28, 28, 0.2);
+        }
+
+        .btn-add {
+            width: 32px;
+            height: 32px;
+            background: #b91c1c;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(185, 28, 28, 0.3);
+            transition: transform 0.2s;
+        }
+        .btn-add:active { transform: scale(0.9); }
+
+        ::-webkit-scrollbar { display: none; }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #1e293b;
+            margin: 24px 0 16px 0;
+        }
+
+        #floating-cart {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+    </style>
+</head>
+<body class="bg-[#fafafa] text-slate-900 pb-28">
+
+    <!-- Header -->
+    <header class="bg-white sticky top-0 z-40 px-4 py-3 border-b border-slate-100">
+        <div class="max-w-xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <img src="app/src/main/res/drawable/logo.png" alt="Logo" class="h-16 w-auto rounded-lg">
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Funcionamos Todos os Dias</span>
+                    <span class="text-sm font-bold text-slate-800 flex items-center gap-1">
+                        Pedido Rápido Via WhatsApp <i class="fa-solid fa-chevron-down text-[10px] text-[#b91c1c]"></i>
+                    </span>
+                </div>
+            </div>
+            <button onclick="toggleCart()" class="relative p-2.5 bg-slate-50 rounded-full text-slate-600">
+                <i class="fa-solid fa-bag-shopping text-xl"></i>
+                <span id="cart-count" class="absolute -top-1 -right-1 bg-[#b91c1c] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden border-2 border-white">0</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-xl mx-auto px-4">
+        <!-- Busca -->
+        <div class="mt-4 mb-6">
+            <div class="relative group">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#b91c1c]"></i>
+                <input type="text" id="search-input" placeholder="Buscar no cardápio..." class="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-100 border-none focus:ring-2 focus:ring-[#b91c1c]/20 outline-none text-sm font-medium">
+            </div>
+        </div>
+
+        <!-- Categorias (Horizontal scroll) -->
+        <div id="category-list" class="flex gap-3 overflow-x-auto pb-4 scroll-smooth no-scrollbar">
+            <button onclick="filterCategory('todos')" class="category-chip active">Todos</button>
+            <!-- Categorias dinâmicas aqui -->
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="flex flex-col items-center justify-center py-20 hidden">
+            <div class="animate-spin rounded-full h-10 w-10 border-4 border-slate-100 border-t-[#b91c1c]"></div>
+        </div>
+
+        <!-- Conteúdo Dinâmico -->
+        <div id="catalog-content">
+            <!-- As seções por categoria serão injetadas aqui -->
+            <div id="product-grid" class="flex flex-col gap-3"></div>
+        </div>
+
+        <!-- Mensagem Vazia -->
+        <div id="empty-msg" class="text-center py-20 hidden">
+            <div class="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-utensils text-2xl text-slate-300"></i>
+            </div>
+            <p class="text-slate-500 font-semibold">Nenhum item encontrado.</p>
+            <p class="text-slate-400 text-xs mt-1">Tente buscar por outro termo.</p>
+        </div>
+    </main>
+
+    <!-- Botão Flutuante Carrinho -->
+    <div id="floating-cart" class="fixed bottom-6 left-0 right-0 px-4 z-40 hidden translate-y-20">
+        <button onclick="toggleCart()" class="w-full bg-[#b91c1c] text-white p-4 rounded-2xl shadow-2xl shadow-red-200/50 flex justify-between items-center font-bold">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/20 p-2 rounded-lg">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                </div>
+                <div class="text-left leading-none">
+                    <span class="block text-[10px] opacity-80 uppercase tracking-widest">Ver Sacola</span>
+                    <span id="floating-count" class="text-sm">1 item</span>
+                </div>
+            </div>
+            <span id="floating-total" class="text-base">R$ 0,00</span>
+        </button>
+    </div>
+
+    <!-- Carrinho Drawer -->
+    <div id="cart-overlay" class="modal-overlay fixed inset-0 z-50" onclick="toggleCart()"></div>
+    <div id="cart-drawer" class="cart-drawer fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-50 shadow-2xl flex flex-col">
+        <div class="p-5 border-b flex justify-between items-center">
+            <div>
+                <h2 class="font-extrabold text-xl">Sua Sacola</h2>
+                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-tighter" id="store-name-cart">Delícias da Tia Néa</p>
+            </div>
+            <button onclick="toggleCart()" class="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-full text-slate-400">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-3">
+            <!-- Itens do carrinho -->
+        </div>
+
+        <div id="cart-footer" class="p-6 border-t bg-white space-y-4">
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm text-slate-500">
+                    <span>Subtotal</span>
+                    <span id="cart-subtotal">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between text-base font-extrabold text-slate-900 border-t pt-2 mt-2">
+                    <span>Total</span>
+                    <span id="cart-total-value" class="text-[#b91c1c]">R$ 0,00</span>
+                </div>
+            </div>
+            <button onclick="openCheckout()" class="w-full bg-[#b91c1c] text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-red-100 active:scale-[0.98] transition-all">
+                Continuar para entrega
+            </button>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-overlay" class="modal-overlay fixed inset-0 z-[60]" onclick="closeCheckout()"></div>
+    <div id="checkout-modal" class="fixed bottom-0 left-0 right-0 bg-white z-[70] rounded-t-[32px] p-8 shadow-2xl transition-transform transform translate-y-full max-h-[95vh] overflow-y-auto">
+        <div class="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-8"></div>
+
+        <header class="text-center mb-8">
+            <h2 class="text-2xl font-extrabold text-slate-800">Finalizar Pedido</h2>
+            <p class="text-slate-400 text-sm mt-1">Preencha os dados para entrega</p>
+        </header>
+
+        <form id="checkout-form" class="space-y-6">
+            <div class="space-y-4">
+                <div class="relative">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-4 mb-1 block">Nome Completo</label>
+                    <input type="text" id="client-name" required placeholder="Ex: Leonardo Silva" class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#b91c1c]/10 focus:bg-white focus:ring-0 outline-none transition-all text-sm font-medium">
+                </div>
+
+                <div class="relative">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-4 mb-1 block">WhatsApp</label>
+                    <input type="tel" id="client-phone" required placeholder="(21) 99999-9999" class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#b91c1c]/10 focus:bg-white focus:ring-0 outline-none transition-all text-sm font-medium">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="relative">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-4 mb-1 block">Tipo de Pedido</label>
+                        <select id="delivery-type" onchange="toggleAddress()" class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#b91c1c]/10 focus:bg-white focus:ring-0 outline-none transition-all text-sm font-bold appearance-none">
+                            <option value="entrega">Entrega</option>
+                            <option value="retirada">Retirada</option>
+                        </select>
+                    </div>
+                    <div class="relative">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-4 mb-1 block">Pagamento</label>
+                        <select id="payment-method" class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#b91c1c]/10 focus:bg-white focus:ring-0 outline-none transition-all text-sm font-bold appearance-none">
+                            <option value="Pix">Pix</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                            <option value="Cartão">Cartão</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="address-field" class="space-y-4">
+                    <div class="relative">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-4 mb-1 block">Bairro</label>
+                        <select id="client-neighborhood" onchange="updateDeliveryFee()" class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#b91c1c]/10 focus:bg-white focus:ring-0 outline-none transition-all text-sm font-bold appearance-none">
+                            <option value="0">Selecione seu bairro...</option>
+                            <option value="0">Centro - Grátis</option>
+                            <option value="5">Bairro A - R$ 5,00</option>
+                            <option value="10">Bairro B - R$ 10,00</option>
+                        </select>
+                    </div>
+                    <div class="relative">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-4 mb-1 block">Endereço</label>
+                        <input type="text" id="client-street" placeholder="Rua, número e complemento" class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#b91c1c]/10 focus:bg-white focus:ring-0 outline-none transition-all text-sm font-medium">
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase ml-4 mb-1 block">Alguma observação?</label>
+                    <textarea id="notes" rows="2" placeholder="Ex: Tirar cebola, troco para 50..." class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#b91c1c]/10 focus:bg-white focus:ring-0 outline-none transition-all text-sm font-medium"></textarea>
+                </div>
+            </div>
+
+            <button type="submit" id="send-btn" class="w-full bg-[#b91c1c] text-white py-5 rounded-2xl font-bold text-lg shadow-xl shadow-red-100 flex justify-center items-center gap-3 active:scale-[0.98] transition-all">
+                <i class="fa-brands fa-whatsapp text-2xl"></i>
+                Confirmar e Enviar
+            </button>
+        </form>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error', err));
+            });
+        }
+    </script>
+</body>
+</html>
