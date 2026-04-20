@@ -1,6 +1,6 @@
 // CONFIGURAÇÕES
 const CONFIG = {
-    STORE_NAME: "Cachorro Quente do Pará",
+    STORE_NAME: "Hot Dog do Pará",
     WHATSAPP_NUMBER: "5521988137667",
     API_URL: "https://script.google.com/macros/s/AKfycbyHBfOtO_zJDTWV_tdLlLSbQbxP8zsqe8I8i1s0PnbITFqS7J7mF-zlhD49_spyUA0aig/exec"
 };
@@ -299,12 +299,14 @@ function toggleCart() {
 // CHECKOUT
 function openCheckout() {
     if (cart.length === 0) return;
-    document.getElementById('checkout-modal').classList.remove('translate-y-full');
+    const modal = document.getElementById('checkout-modal');
+    modal.classList.remove('translate-y-full', 'opacity-0', 'pointer-events-none');
     document.getElementById('checkout-overlay').classList.add('open');
 }
 
 function closeCheckout() {
-    document.getElementById('checkout-modal').classList.add('translate-y-full');
+    const modal = document.getElementById('checkout-modal');
+    modal.classList.add('translate-y-full', 'opacity-0', 'pointer-events-none');
     document.getElementById('checkout-overlay').classList.remove('open');
 }
 
