@@ -1,6 +1,6 @@
 {
-  "name": "Delicias da Tia Néa",
-  "short_name": "Tia Néa",
+  "name": "Hot Dog do Pará",
+  "short_name": "Paraiba",
   "description": "Catálogo de produtos com carrinho e pedidos via WhatsApp",
   "start_url": "index.html",
   "display": "standalone",
