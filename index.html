@@ -24,8 +24,13 @@
             background: white;
             border-radius: 16px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid #f1f5f9;
+        }
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+            border-color: #b91c1c20;
         }
         .product-card:active { transform: scale(0.98); }
 
@@ -67,6 +72,7 @@
             font-weight: 800;
             color: #1e293b;
             margin: 24px 0 16px 0;
+            grid-column: 1 / -1;
         }
 
         #floating-cart {
@@ -78,9 +84,9 @@
 
     <!-- Header -->
     <header class="bg-white sticky top-0 z-40 px-4 py-3 border-b border-slate-100">
-        <div class="max-w-xl mx-auto flex justify-between items-center">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <img src="app/src/main/res/drawable/logo.png" alt="Logo" class="h-20 w-auto rounded-lg">
+                <img src="app/src/main/res/drawable/logo.png" alt="Logo" class="h-16 md:h-20 w-auto rounded-lg">
                 <div class="flex flex-col">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Funcionamos de Terça à Domingo das 18:00 às 23:00</span>
                     <span class="text-sm font-bold text-slate-800 flex items-center gap-1">
@@ -95,17 +101,17 @@
         </div>
     </header>
 
-    <main class="max-w-xl mx-auto px-4">
+    <main class="max-w-5xl mx-auto px-4">
         <!-- Busca -->
         <div class="mt-4 mb-6">
-            <div class="relative group">
+            <div class="relative group max-w-2xl mx-auto">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#b91c1c]"></i>
                 <input type="text" id="search-input" placeholder="Buscar no cardápio..." class="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-100 border-none focus:ring-2 focus:ring-[#b91c1c]/20 outline-none text-sm font-medium">
             </div>
         </div>
 
         <!-- Categorias (Horizontal scroll) -->
-        <div id="category-list" class="flex gap-3 overflow-x-auto pb-4 scroll-smooth no-scrollbar">
+        <div id="category-list" class="flex gap-3 overflow-x-auto pb-4 scroll-smooth no-scrollbar justify-start md:justify-center">
             <button onclick="filterCategory('todos')" class="category-chip active">Todos</button>
             <!-- Categorias dinâmicas aqui -->
         </div>
@@ -118,7 +124,7 @@
         <!-- Conteúdo Dinâmico -->
         <div id="catalog-content">
             <!-- As seções por categoria serão injetadas aqui -->
-            <div id="product-grid" class="flex flex-col gap-3"></div>
+            <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
         <!-- Mensagem Vazia -->
@@ -132,7 +138,7 @@
     </main>
 
     <!-- Botão Flutuante Carrinho -->
-    <div id="floating-cart" class="fixed bottom-6 left-0 right-0 px-4 z-40 hidden translate-y-20">
+    <div id="floating-cart" class="fixed bottom-6 left-0 right-0 px-4 z-40 hidden translate-y-20 md:max-w-md md:left-auto md:right-6">
         <button onclick="toggleCart()" class="w-full bg-[#b91c1c] text-white p-4 rounded-2xl shadow-2xl shadow-red-200/50 flex justify-between items-center font-bold">
             <div class="flex items-center gap-3">
                 <div class="bg-white/20 p-2 rounded-lg">
@@ -187,8 +193,8 @@
 
     <!-- Checkout Modal -->
     <div id="checkout-overlay" class="modal-overlay fixed inset-0 z-[60]" onclick="closeCheckout()"></div>
-    <div id="checkout-modal" class="fixed bottom-0 left-0 right-0 bg-white z-[70] rounded-t-[32px] p-8 shadow-2xl transition-transform transform translate-y-full max-h-[95vh] overflow-y-auto">
-        <div class="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-8"></div>
+    <div id="checkout-modal" class="fixed bottom-0 left-0 right-0 md:top-1/2 md:left-1/2 md:bottom-auto md:right-auto md:-translate-x-1/2 md:-translate-y-1/2 bg-white z-[70] rounded-t-[32px] md:rounded-[32px] p-8 shadow-2xl transition-all duration-300 transform translate-y-full opacity-0 pointer-events-none max-h-[95vh] w-full md:max-w-2xl overflow-y-auto">
+        <div class="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-8 md:hidden"></div>
 
         <header class="text-center mb-8">
             <h2 class="text-2xl font-extrabold text-slate-800">Finalizar Pedido</h2>
@@ -230,27 +236,18 @@
                         <label class="text-[10px] font-bold text-slate-400 uppercase ml-4 mb-1 block">Bairro</label>
                         <select id="client-neighborhood" onchange="updateDeliveryFee()" class="w-full p-4 rounded-2xl bg-slate-50 border-2 border-transparent focus:border-[#b91c1c]/10 focus:bg-white focus:ring-0 outline-none transition-all text-sm font-bold appearance-none">
                             <option value="0">Selecione seu bairro...</option>
-                            <option value="5">Centro - R$ 5,00</option>
+                            <option value="0">Centro - Grátis</option>
                             <option value="5">Barbuda - R$ 5,00</option>
-                            <option value="6">Saco - R$ 6,00</option>
-                            <option value="5">Mundo Novo - R$ 5,00</option>
-                            <option value="5">Flexeiras - R$ 5,00</option>
-                            <option value="6">Piedade - R$ 6,00</option>
-                            <option value="5">Figueira - R$ 5,00</option>
-                            <option value="5">Bela Floresta - R$ 5,00</option>
-                            <option value="5">Vila Nova - R$ 5,00</option>
-                            <option value="5">Canal - R$ 5,00</option>
-                            <option value="5">Comendador Reis - R$ 5,00</option>
-                            <option value="6">Vila Olímpia - R$ 6,00</option>
-                            <option value="15">Gandé - R$ 15,00</option>
-                            <option value="15">Jardim Esmeralda - R$ 15,00</option>
-                            <option value="12">Parque Boneville - R$ 12,00</option>
-                            <option value="8">Iriri - R$ 8,00</option>
-                            <option value="6">Nova Marília - R$ 6,00</option>
-                            <option value="6">Vila Esperança - R$ 6,00</option>
-                            <option value="6">Várzea Alegre - R$ 6,00</option>
-                            <option value="5">Vila da Liberdade - R$ 5,00</option>
-                            <option value="5">Parque Azul - R$ 5,00</option>
+                            <option value="10">Saco - R$ 10,00</option>
+                            <option value="15">Mundo Novo - R$ 10,00</option>
+                            <option value="20">Flexeiras - R$ 10,00</option>
+                            <option value="25">Piedade - R$ 10,00</option>
+                            <option value="30">Parque Boneville - R$ 10,00</option>
+                            <option value="35">Figueira - R$ 10,00</option>
+                            <option value="40">Bela Floresta - R$ 10,00</option>
+                            <option value="45">Vila Nova - R$ 10,00</option>
+                            <option value="50">Canal - R$ 10,00</option>
+                            <option value="55">Comendador Reis - R$ 10,00</option>
                         </select>
                     </div>
                     <div class="relative">
@@ -274,8 +271,8 @@
 
     <!-- Opções Modal -->
     <div id="options-overlay" class="modal-overlay fixed inset-0 z-[60]" onclick="closeOptionsModal()"></div>
-    <div id="options-modal" class="fixed bottom-0 left-0 right-0 bg-white z-[70] rounded-t-[32px] p-8 shadow-2xl transition-transform transform translate-y-full max-h-[95vh] overflow-y-auto">
-        <div class="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-6"></div>
+    <div id="options-modal" class="fixed bottom-0 left-0 right-0 md:top-1/2 md:left-1/2 md:bottom-auto md:right-auto md:-translate-x-1/2 md:-translate-y-1/2 bg-white z-[70] rounded-t-[32px] md:rounded-[32px] p-8 shadow-2xl transition-all duration-300 transform translate-y-full opacity-0 pointer-events-none max-h-[95vh] w-full md:max-w-lg overflow-y-auto">
+        <div class="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-6 md:hidden"></div>
         <div id="options-content" class="space-y-6">
             <!-- Conteúdo injetado via JS -->
         </div>
