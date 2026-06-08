@@ -29,6 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchProducts();
     updateCartUI();
     setupMask();
+
+    // Sincroniza o nome da loja no carrinho
+    const storeNameCart = document.getElementById('store-name-cart');
+    if (storeNameCart) storeNameCart.innerText = CONFIG.STORE_NAME;
 });
 
 // FORMATADORES
@@ -50,16 +54,22 @@ async function fetchProducts() {
         const response = await fetch(`${CONFIG.API_URL}?action=produtos`);
         const data = await response.json();
 
-        allProducts = data.map(p => ({
-            id: String(p.id || Math.random()),
-            nome: p.nome || p.Nome || "Produto",
-            descrição: p.descricao || p.Descrição || "",
-            categoria: p.categoria || p.Categoria || "Diversos",
-            preço: formatPrice(p.preco || p.Preço || p.valor),
-            imagem: p.imagem || p.Imagem || p.foto,
-            ativo: p.ativo !== undefined ? (String(p.ativo).toUpperCase() === 'TRUE' || p.ativo === 1) : true,
-            opcoes: p.opcoes || [] // Espera um array de { nome: 'P', preço: 10 }
-        }));
+        allProducts = data.map(p => {
+            const id = String(p.id || p.ID || "");
+            // Se não houver ID, cria um baseado no nome e categoria para manter estabilidade
+            const stableId = id || btoa(unescape(encodeURIComponent((p.nome || p.Nome || "") + (p.categoria || p.Categoria || "")))).substring(0, 8);
+
+            return {
+                id: stableId,
+                nome: p.nome || p.Nome || "Produto",
+                descrição: p.descricao || p.Descrição || "",
+                categoria: p.categoria || p.Categoria || "Diversos",
+                preço: formatPrice(p.preco || p.Preço || p.valor),
+                imagem: p.imagem || p.Imagem || p.foto,
+                ativo: p.ativo !== undefined ? (String(p.ativo).toUpperCase() === 'TRUE' || p.ativo === 1) : true,
+                opcoes: p.opcoes || []
+            };
+        });
 
         renderCategories();
         renderProducts(allProducts);
@@ -136,13 +146,21 @@ function renderCategories() {
         const btn = document.createElement('button');
         btn.className = `category-chip ${currentCategory === cat ? 'active' : ''}`;
         btn.innerText = cat === 'todos' ? 'Todos' : cat;
-        btn.onclick = () => {
-            currentCategory = cat;
-            renderCategories();
-            renderProducts(allProducts);
-        };
+        btn.onclick = () => filterCategory(cat);
         categoryList.appendChild(btn);
     });
+}
+
+// Função de filtro unificada (chamada pelo HTML e pelo JS)
+function filterCategory(cat) {
+    currentCategory = cat;
+    renderCategories();
+    renderProducts(allProducts);
+
+    // Scroll suave para o topo do grid ao trocar categoria
+    if (cat !== 'todos') {
+        productGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 // BUSCA
