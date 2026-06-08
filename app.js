@@ -1,7 +1,7 @@
 // CONFIGURAÇÕES
 const CONFIG = {
     STORE_NAME: "Cachorro Quente do Pará",
-    WHATSAPP_NUMBER: "5521988137667",
+    WHATSAPP_NUMBER: "5521997607873",
     API_URL: "https://script.google.com/macros/s/AKfycbyHBfOtO_zJDTWV_tdLlLSbQbxP8zsqe8I8i1s0PnbITFqS7J7mF-zlhD49_spyUA0aig/exec"
 };
 
