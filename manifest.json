@@ -2,20 +2,21 @@
   "name": "Cachorro Quente do Pará",
   "short_name": "Pará Dog",
   "description": "O melhor cachorro quente da região no seu celular.",
-  "start_url": "./index.html",
+  "start_url": "/ParaibaApp/",
+  "scope": "/ParaibaApp/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#b91c1c",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "app/src/main/res/drawable/logo.png",
+      "src": "logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "app/src/main/res/drawable/logo.png",
+      "src": "logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
